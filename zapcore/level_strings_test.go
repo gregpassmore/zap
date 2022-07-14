@@ -27,7 +27,7 @@ import (
 )
 
 func TestAllLevelsCoveredByLevelString(t *testing.T) {
-	numLevels := int((_maxLevel - _minLevel) + 1)
+	numLevels := int((MaxLevel - MinLevel) + 1)
 
 	isComplete := func(m map[Level]string) bool {
 		return len(m) == numLevels

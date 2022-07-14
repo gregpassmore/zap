@@ -21,7 +21,8 @@
 package zap
 
 import (
-	"io"
+  "go.uber.org/zap/zapsampler"
+  "io"
 	"os"
 	"testing"
 
@@ -146,14 +147,14 @@ func TestConfigWithMissingAttributes(t *testing.T) {
 	}
 }
 
-func makeSamplerCountingHook() (h func(zapcore.Entry, zapcore.SamplingDecision),
+func makeSamplerCountingHook() (h func(zapcore.Entry, zapsampler.SamplingDecision),
 	dropped, sampled *atomic.Int64) {
 	dropped = new(atomic.Int64)
 	sampled = new(atomic.Int64)
-	h = func(_ zapcore.Entry, dec zapcore.SamplingDecision) {
-		if dec&zapcore.LogDropped > 0 {
+	h = func(_ zapcore.Entry, dec zapsampler.SamplingDecision) {
+		if dec&zapsampler.LogDropped > 0 {
 			dropped.Inc()
-		} else if dec&zapcore.LogSampled > 0 {
+		} else if dec&zapsampler.LogSampled > 0 {
 			sampled.Inc()
 		}
 	}

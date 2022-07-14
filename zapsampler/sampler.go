@@ -18,16 +18,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zapcore
+package zapsampler
 
 import (
-	"time"
+  "go.uber.org/zap/zapcore"
+  "time"
 
 	"go.uber.org/atomic"
 )
 
 const (
-	_numLevels        = _maxLevel - _minLevel + 1
+	_numLevels        = zapcore.MaxLevel - zapcore.MinLevel + 1
 	_countersPerLevel = 4096
 )
 
@@ -42,8 +43,8 @@ func newCounters() *counters {
 	return &counters{}
 }
 
-func (cs *counters) get(lvl Level, key string) *counter {
-	i := lvl - _minLevel
+func (cs *counters) get(lvl zapcore.Level, key string) *counter {
+	i := lvl - zapcore.MinLevel
 	j := fnv32a(key) % _countersPerLevel
 	return &cs[i][j]
 }
@@ -105,7 +106,7 @@ type SamplerOption interface {
 }
 
 // nopSamplingHook is the default hook used by sampler.
-func nopSamplingHook(Entry, SamplingDecision) {}
+func nopSamplingHook(zapcore.Entry, SamplingDecision) {}
 
 // SamplerHook registers a function  which will be called when Sampler makes a
 // decision.
@@ -119,7 +120,7 @@ func nopSamplingHook(Entry, SamplingDecision) {}
 //      dropped.Inc()
 //    }
 //  })
-func SamplerHook(hook func(entry Entry, dec SamplingDecision)) SamplerOption {
+func SamplerHook(hook func(entry zapcore.Entry, dec SamplingDecision)) SamplerOption {
 	return optionFunc(func(s *sampler) {
 		s.hook = hook
 	})
@@ -150,7 +151,7 @@ func SamplerHook(hook func(entry Entry, dec SamplingDecision)) SamplerOption {
 // Keep in mind that Zap's sampling implementation is optimized for speed over
 // absolute precision; under load, each tick may be slightly over- or
 // under-sampled.
-func NewSamplerWithOptions(core Core, tick time.Duration, first, thereafter int, opts ...SamplerOption) Core {
+func NewSamplerWithOptions(core zapcore.Core, tick time.Duration, first, thereafter int, opts ...SamplerOption) zapcore.Core {
 	s := &sampler{
 		Core:       core,
 		tick:       tick,
@@ -167,12 +168,12 @@ func NewSamplerWithOptions(core Core, tick time.Duration, first, thereafter int,
 }
 
 type sampler struct {
-	Core
+  zapcore.Core
 
 	counts            *counters
 	tick              time.Duration
 	first, thereafter uint64
-	hook              func(Entry, SamplingDecision)
+	hook              func(zapcore.Entry, SamplingDecision)
 }
 
 // NewSampler creates a Core that samples incoming entries, which
@@ -188,11 +189,11 @@ type sampler struct {
 // under-sampled.
 //
 // Deprecated: use NewSamplerWithOptions.
-func NewSampler(core Core, tick time.Duration, first, thereafter int) Core {
+func NewSampler(core zapcore.Core, tick time.Duration, first, thereafter int) zapcore.Core {
 	return NewSamplerWithOptions(core, tick, first, thereafter)
 }
 
-func (s *sampler) With(fields []Field) Core {
+func (s *sampler) With(fields []zapcore.Field) zapcore.Core {
 	return &sampler{
 		Core:       s.Core.With(fields),
 		tick:       s.tick,
@@ -203,12 +204,12 @@ func (s *sampler) With(fields []Field) Core {
 	}
 }
 
-func (s *sampler) Check(ent Entry, ce *CheckedEntry) *CheckedEntry {
+func (s *sampler) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if !s.Enabled(ent.Level) {
 		return ce
 	}
 
-	if ent.Level >= _minLevel && ent.Level <= _maxLevel {
+	if ent.Level >= zapcore.MinLevel && ent.Level <= zapcore.MaxLevel {
 		counter := s.counts.get(ent.Level, ent.Message)
 		n := counter.IncCheckReset(ent.Time, s.tick)
 		if n > s.first && (s.thereafter == 0 || (n-s.first)%s.thereafter != 0) {

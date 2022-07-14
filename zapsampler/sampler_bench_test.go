@@ -18,11 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zapcore_test
+package zapsampler_test
 
 import (
 	"fmt"
-	"testing"
+  . "go.uber.org/zap/zapsampler"
+  "testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"

@@ -23,7 +23,8 @@ package benchmarks
 import (
 	"errors"
 	"fmt"
-	"time"
+  "go.uber.org/zap/zapsampler"
+  "time"
 
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -116,7 +117,7 @@ func newZapLogger(lvl zapcore.Level) *zap.Logger {
 }
 
 func newSampledLogger(lvl zapcore.Level) *zap.Logger {
-	return zap.New(zapcore.NewSamplerWithOptions(
+	return zap.New(zapsampler.NewSamplerWithOptions(
 		newZapLogger(zap.DebugLevel).Core(),
 		100*time.Millisecond,
 		10, // first

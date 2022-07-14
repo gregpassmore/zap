@@ -51,8 +51,8 @@ const (
 	// FatalLevel logs a message, then calls os.Exit(1).
 	FatalLevel
 
-	_minLevel = DebugLevel
-	_maxLevel = FatalLevel
+	MinLevel = DebugLevel
+	MaxLevel = FatalLevel
 )
 
 // ParseLevel parses a level based on the lower-case or all-caps ASCII

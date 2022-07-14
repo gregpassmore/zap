@@ -18,11 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zapcore_test
+package zapsampler_test
 
 import (
 	"fmt"
-	"runtime"
+  . "go.uber.org/zap/zapsampler"
+  "runtime"
 	"sync"
 	"testing"
 	"time"
@@ -313,4 +314,8 @@ func TestSamplerWithZeroThereafter(t *testing.T) {
 
 	assert.Equal(t, 4, int(counter.logs.Load()),
 		"Unexpected number of logs")
+}
+
+func makeInt64Field(key string, val int) Field {
+	return Field{Type: Int64Type, Integer: int64(val), Key: key}
 }

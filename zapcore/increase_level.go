@@ -32,7 +32,7 @@ type levelFilterCore struct {
 // as a filter before calling the underlying core. If level decreases the log level,
 // an error is returned.
 func NewIncreaseLevelCore(core Core, level LevelEnabler) (Core, error) {
-	for l := _maxLevel; l >= _minLevel; l-- {
+	for l := MaxLevel; l >= MinLevel; l-- {
 		if !core.Enabled(l) && level.Enabled(l) {
 			return nil, fmt.Errorf("invalid increase level, as level %q is allowed by increased level, but not by existing core", l)
 		}

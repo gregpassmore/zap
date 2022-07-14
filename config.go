@@ -22,7 +22,8 @@ package zap
 
 import (
 	"fmt"
-	"sort"
+  "go.uber.org/zap/zapsampler"
+  "sort"
 	"time"
 
 	"go.uber.org/zap/zapcore"
@@ -38,8 +39,8 @@ import (
 // details.
 type SamplingConfig struct {
 	Initial    int                                           `json:"initial" yaml:"initial"`
-	Thereafter int                                           `json:"thereafter" yaml:"thereafter"`
-	Hook       func(zapcore.Entry, zapcore.SamplingDecision) `json:"-" yaml:"-"`
+	Thereafter int                                              `json:"thereafter" yaml:"thereafter"`
+	Hook       func(zapcore.Entry, zapsampler.SamplingDecision) `json:"-" yaml:"-"`
 }
 
 // Config offers a declarative way to construct a logger. It doesn't do
@@ -216,11 +217,11 @@ func (cfg Config) buildOptions(errSink zapcore.WriteSyncer) []Option {
 
 	if scfg := cfg.Sampling; scfg != nil {
 		opts = append(opts, WrapCore(func(core zapcore.Core) zapcore.Core {
-			var samplerOpts []zapcore.SamplerOption
+			var samplerOpts []zapsampler.SamplerOption
 			if scfg.Hook != nil {
-				samplerOpts = append(samplerOpts, zapcore.SamplerHook(scfg.Hook))
+				samplerOpts = append(samplerOpts, zapsampler.SamplerHook(scfg.Hook))
 			}
-			return zapcore.NewSamplerWithOptions(
+			return zapsampler.NewSamplerWithOptions(
 				core,
 				time.Second,
 				cfg.Sampling.Initial,
